@@ -25,6 +25,8 @@ import {
 } from "../utils/imageCanvasEngine.ts";
 
 interface ImageStudioProps {
+  sharedSourceDataUrl?: string | null;
+  onChangeSharedSourceDataUrl?: (url: string | null) => void;
   onSaveImageSnapshot: (snapshot: {
     outputDataUrl: string;
     aspectRatio: AspectRatioOption;
@@ -38,10 +40,14 @@ interface ImageStudioProps {
 }
 
 export function ImageStudio({
+  sharedSourceDataUrl,
+  onChangeSharedSourceDataUrl,
   onSaveImageSnapshot,
   restoredSnapshot,
 }: ImageStudioProps) {
-  const [sourceDataUrl, setSourceDataUrl] = useState<string | null>(null);
+  const [sourceDataUrl, setSourceDataUrl] = useState<string | null>(
+    sharedSourceDataUrl ?? null
+  );
   const [sourceImg, setSourceImg] = useState<HTMLImageElement | null>(null);
 
   const [strokes, setStrokes] = useState<MaskStroke[]>([]);
@@ -72,6 +78,16 @@ export function ImageStudio({
   const resultCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isDrawingRef = useRef(false);
+
+  // Sync with shared screenshot uploaded from CopyWorkbench
+  useEffect(() => {
+    if (sharedSourceDataUrl && sharedSourceDataUrl !== sourceDataUrl) {
+      setSourceDataUrl(sharedSourceDataUrl);
+      setStrokes([]);
+      setRedoStack([]);
+      setPreviewTab("mask");
+    }
+  }, [sharedSourceDataUrl]);
 
   // Load restored snapshot if provided from History
   useEffect(() => {
@@ -124,6 +140,7 @@ export function ImageStudio({
             reader.onload = () => {
               if (typeof reader.result === "string") {
                 setSourceDataUrl(reader.result);
+                onChangeSharedSourceDataUrl?.(reader.result);
                 setStrokes([]);
                 setRedoStack([]);
                 setPreviewTab("mask");
@@ -138,7 +155,7 @@ export function ImageStudio({
     };
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, []);
+  }, [onChangeSharedSourceDataUrl]);
 
   // Draw interactive masking canvas
   useEffect(() => {
@@ -205,6 +222,7 @@ export function ImageStudio({
     reader.onload = () => {
       if (typeof reader.result === "string") {
         setSourceDataUrl(reader.result);
+        onChangeSharedSourceDataUrl?.(reader.result);
         setStrokes([]);
         setRedoStack([]);
         setPreviewTab("mask");

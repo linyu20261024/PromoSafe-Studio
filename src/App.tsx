@@ -33,6 +33,9 @@ export default function App() {
   const [rawText, setRawText] = useState("");
   const [copyStyle, setCopyStyle] = useState<CopyStyle>("step_by_step");
   const [copyResult, setCopyResult] = useState<CopyResult | null>(null);
+  const [sharedScreenshotUrl, setSharedScreenshotUrl] = useState<string | null>(
+    null
+  );
 
   const [restoredImageSnapshot, setRestoredImageSnapshot] = useState<{
     outputDataUrl: string;
@@ -51,6 +54,7 @@ export default function App() {
   const handleResetWorkspace = () => {
     setRawText("");
     setCopyResult(null);
+    setSharedScreenshotUrl(null);
     setRestoredImageSnapshot(null);
     setActiveTab("workbench");
   };
@@ -113,14 +117,13 @@ export default function App() {
       <main className="flex-1 max-w-[1400px] w-full mx-auto px-6 py-7">
         {activeTab === "workbench" && (
           <div>
-            {/* Workbench Header & Mode Switcher (placed below header per Top Bar Contract) */}
             <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
               <div>
                 <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
                   小红书优惠笔记合规二创工作台
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">
-                  本地离线提炼重点 · 精准规避导流与金融限流词 · 3:4 竖版涂抹去敏换底
+                  支持活动截图识字提炼 · 精准规避导流与金融限流词 · 3:4 竖版涂抹去敏换底
                 </p>
               </div>
 
@@ -162,9 +165,14 @@ export default function App() {
                 result={copyResult}
                 onUpdateResult={setCopyResult}
                 onSaveSnapshot={handleSaveCopySnapshot}
+                screenshotDataUrl={sharedScreenshotUrl}
+                onChangeScreenshotDataUrl={setSharedScreenshotUrl}
+                onSendScreenshotToImageStudio={() => setWorkbenchMode("image")}
               />
             ) : (
               <ImageStudio
+                sharedSourceDataUrl={sharedScreenshotUrl}
+                onChangeSharedSourceDataUrl={setSharedScreenshotUrl}
                 onSaveImageSnapshot={handleSaveImageSnapshot}
                 restoredSnapshot={restoredImageSnapshot}
               />
